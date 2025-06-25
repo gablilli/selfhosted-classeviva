@@ -16,14 +16,12 @@ interface LoginFormProps {
 export interface LoginCredentials {
   username: string;
   password: string;
-  schoolCode: string;
 }
 
 export const LoginForm = ({ onLogin, isLoading = false, error }: LoginFormProps) => {
   const [credentials, setCredentials] = useState<LoginCredentials>({
     username: '',
-    password: '',
-    schoolCode: ''
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -92,19 +90,6 @@ export const LoginForm = ({ onLogin, isLoading = false, error }: LoginFormProps)
                   )}
                 </Button>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="schoolCode">Codice Scuola</Label>
-              <Input
-                id="schoolCode"
-                type="text"
-                placeholder="es. BGIC123456"
-                value={credentials.schoolCode}
-                onChange={handleChange('schoolCode')}
-                required
-                disabled={isLoading}
-              />
             </div>
 
             {error && (

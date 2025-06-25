@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, TrendingUp, BookOpen, Target, Calendar } from 'lucide-react';
+import { LogOut, TrendingUp, BookOpen, Target, Calendar, Eye } from 'lucide-react';
 import { GradeChart } from './GradeChart';
 import { SubjectAverageChart } from './SubjectAverageChart';
 import { GradeDistributionChart } from './GradeDistributionChart';
@@ -89,6 +88,7 @@ const mockUser = {
 export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const [subjects] = useState<Subject[]>(mockSubjects);
   const [user] = useState(mockUser);
+  const [showAllSubjects, setShowAllSubjects] = useState(false);
 
   // Calcola la media generale
   const overallAverage = subjects.reduce((sum, subject) => sum + subject.average, 0) / subjects.length;
@@ -100,6 +100,9 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
   const bestSubject = subjects.reduce((best, current) => 
     current.average > best.average ? current : best
   );
+
+  // Mostra solo le prime 4 materie se showAllSubjects è false
+  const displayedSubjects = showAllSubjects ? subjects : subjects.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -209,12 +212,25 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
 
           {/* Subjects List */}
           <Card>
-            <CardHeader>
-              <CardTitle>Riepilogo Materie</CardTitle>
-              <CardDescription>Tutte le tue materie e medie</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle>Riepilogo Materie</CardTitle>
+                <CardDescription>Le tue materie e medie</CardDescription>
+              </div>
+              {subjects.length > 4 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAllSubjects(!showAllSubjects)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  {showAllSubjects ? 'Mostra Meno' : 'Vedi Tutte'}
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
-              {subjects.map((subject, index) => (
+              {displayedSubjects.map((subject, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-sm">{subject.name}</p>
@@ -225,6 +241,13 @@ export const Dashboard = ({ onLogout }: { onLogout: () => void }) => {
                   </Badge>
                 </div>
               ))}
+              {!showAllSubjects && subjects.length > 4 && (
+                <div className="text-center pt-2">
+                  <p className="text-sm text-gray-500">
+                    E altre {subjects.length - 4} materie...
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

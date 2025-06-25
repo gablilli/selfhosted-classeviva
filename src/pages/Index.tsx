@@ -15,11 +15,12 @@ const Index = () => {
     setError(null);
 
     try {
-      // Simula chiamata API di login
-      console.log('Tentativo di login con:', credentials);
+      // Simula chiamata API di login a ClasseViva
+      console.log('Tentativo di login ClasseViva con:', credentials);
       
       // Per la demo, accetta qualsiasi credenziale con almeno 3 caratteri
-      if (credentials.username.length >= 3 && credentials.password.length >= 3 && credentials.schoolCode.length >= 3) {
+      // Nell'implementazione reale useremo Supabase Edge Functions per chiamare l'API ClasseViva
+      if (credentials.username.length >= 3 && credentials.password.length >= 3) {
         await new Promise(resolve => setTimeout(resolve, 2000)); // Simula delay API
         
         setIsAuthenticated(true);
@@ -28,10 +29,10 @@ const Index = () => {
           description: "Benvenuto nella dashboard ClasseViva Media",
         });
       } else {
-        throw new Error('Credenziali non valide. Inserisci almeno 3 caratteri per ogni campo.');
+        throw new Error('Credenziali non valide. Username e password devono avere almeno 3 caratteri.');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Errore durante il login';
+      const errorMessage = err instanceof Error ? err.message : 'Errore durante il login con ClasseViva';
       setError(errorMessage);
       toast({
         title: "Errore di login",
@@ -48,7 +49,7 @@ const Index = () => {
     setError(null);
     toast({
       title: "Logout effettuato",
-      description: "Sei stato disconnesso con successo",
+      description: "Sei stato disconnesso da ClasseViva",
     });
   };
 
