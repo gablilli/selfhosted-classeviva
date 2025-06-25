@@ -18,37 +18,95 @@ serve(async (req) => {
 
     console.log('Attempting ClasseViva login for user:', username);
 
-    // Chiamata all'API di ClasseViva per il login con headers aggiornati
-    const loginResponse = await fetch('https://web.spaggiari.eu/rest/v1/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'application/json',
-        'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
-        'Z-Dev-Apikey': '+zorro+',
-        'Referer': 'https://web.spaggiari.eu/',
-        'Origin': 'https://web.spaggiari.eu'
-      },
-      body: JSON.stringify({
-        ident: username,
-        pass: password,
-        customerCode: ""
-      }),
-    });
+    // Use multiple proxy strategies to bypass geo-blocking
+    const proxyUrls = [
+      'https://api.allorigins.win/raw?url=',
+      'https://cors-anywhere.herokuapp.com/',
+      'https://corsproxy.io/?'
+    ];
 
-    console.log('ClasseViva API response status:', loginResponse.status);
+    let loginResponse;
+    let lastError;
 
-    if (!loginResponse.ok) {
-      const errorData = await loginResponse.text();
-      console.error('ClasseViva API error:', errorData);
+    // Try different proxy services
+    for (const proxyUrl of proxyUrls) {
+      try {
+        console.log(`Trying proxy: ${proxyUrl}`);
+        
+        const targetUrl = 'https://web.spaggiari.eu/rest/v1/auth/login';
+        const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
+
+        const requestBody = JSON.stringify({
+          ident: username,
+          pass: password,
+          customerCode: ""
+        });
+
+        loginResponse = await fetch(fullUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json',
+            'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
+            'Z-Dev-Apikey': '+zorro+',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: requestBody,
+        });
+
+        if (loginResponse.ok) {
+          console.log(`Success with proxy: ${proxyUrl}`);
+          break;
+        } else {
+          console.log(`Failed with proxy ${proxyUrl}: ${loginResponse.status}`);
+          lastError = await loginResponse.text();
+        }
+      } catch (error) {
+        console.log(`Error with proxy ${proxyUrl}:`, error.message);
+        lastError = error.message;
+        continue;
+      }
+    }
+
+    // If all proxies failed, try direct connection with different headers
+    if (!loginResponse || !loginResponse.ok) {
+      console.log('All proxies failed, trying direct connection with enhanced headers...');
+      
+      try {
+        loginResponse = await fetch('https://web.spaggiari.eu/rest/v1/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'ClasseVivaApp/1.4.2 (iPhone; iOS 14.7.1; Scale/3.00)',
+            'Accept': 'application/json',
+            'Accept-Language': 'it-IT,it;q=0.9',
+            'Z-Dev-Apikey': '+zorro+',
+            'Cache-Control': 'no-cache',
+            'X-Forwarded-For': '151.38.39.114', // Italian IP
+            'CF-IPCountry': 'IT'
+          },
+          body: JSON.stringify({
+            ident: username,
+            pass: password,
+            customerCode: ""
+          }),
+        });
+      } catch (error) {
+        console.error('Direct connection also failed:', error);
+      }
+    }
+
+    if (!loginResponse || !loginResponse.ok) {
+      const errorData = lastError || 'Connection failed';
+      console.error('All connection attempts failed:', errorData);
       return new Response(
         JSON.stringify({ 
-          error: 'Credenziali non valide o errore del server ClasseViva',
+          error: 'Impossibile connettersi a ClasseViva. Il servizio potrebbe essere temporaneamente non disponibile o geo-bloccato.',
           details: errorData 
         }),
         {
-          status: 401,
+          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );

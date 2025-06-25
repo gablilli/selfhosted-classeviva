@@ -18,31 +18,85 @@ serve(async (req) => {
 
     console.log('Fetching grades for user:', userId);
 
-    // Chiamata all'API di ClasseViva per ottenere i voti
-    const gradesResponse = await fetch(`https://web.spaggiari.eu/rest/v1/students/${userId}/grades`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'application/json',
-        'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
-        'Z-Dev-Apikey': '+zorro+',
-        'Z-Auth-Token': token,
-        'Referer': 'https://web.spaggiari.eu/',
-        'Origin': 'https://web.spaggiari.eu'
-      },
-    });
+    // Use multiple proxy strategies to bypass geo-blocking
+    const proxyUrls = [
+      'https://api.allorigins.win/raw?url=',
+      'https://cors-anywhere.herokuapp.com/',
+      'https://corsproxy.io/?'
+    ];
 
-    if (!gradesResponse.ok) {
-      const errorData = await gradesResponse.text();
-      console.error('ClasseViva grades API error:', errorData);
+    let gradesResponse;
+    let lastError;
+
+    // Try different proxy services
+    for (const proxyUrl of proxyUrls) {
+      try {
+        console.log(`Trying proxy for grades: ${proxyUrl}`);
+        
+        const targetUrl = `https://web.spaggiari.eu/rest/v1/students/${userId}/grades`;
+        const fullUrl = proxyUrl + encodeURIComponent(targetUrl);
+
+        gradesResponse = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json',
+            'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
+            'Z-Dev-Apikey': '+zorro+',
+            'Z-Auth-Token': token,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+        });
+
+        if (gradesResponse.ok) {
+          console.log(`Success with proxy: ${proxyUrl}`);
+          break;
+        } else {
+          console.log(`Failed with proxy ${proxyUrl}: ${gradesResponse.status}`);
+          lastError = await gradesResponse.text();
+        }
+      } catch (error) {
+        console.log(`Error with proxy ${proxyUrl}:`, error.message);
+        lastError = error.message;
+        continue;
+      }
+    }
+
+    // If all proxies failed, try direct connection with different headers
+    if (!gradesResponse || !gradesResponse.ok) {
+      console.log('All proxies failed, trying direct connection with enhanced headers...');
+      
+      try {
+        gradesResponse = await fetch(`https://web.spaggiari.eu/rest/v1/students/${userId}/grades`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'ClasseVivaApp/1.4.2 (iPhone; iOS 14.7.1; Scale/3.00)',
+            'Accept': 'application/json',
+            'Accept-Language': 'it-IT,it;q=0.9',
+            'Z-Dev-Apikey': '+zorro+',
+            'Z-Auth-Token': token,
+            'Cache-Control': 'no-cache',
+            'X-Forwarded-For': '151.38.39.114', // Italian IP
+            'CF-IPCountry': 'IT'
+          },
+        });
+      } catch (error) {
+        console.error('Direct connection for grades also failed:', error);
+      }
+    }
+
+    if (!gradesResponse || !gradesResponse.ok) {
+      const errorData = lastError || 'Connection failed';
+      console.error('All grade connection attempts failed:', errorData);
       return new Response(
         JSON.stringify({ 
-          error: 'Errore nel recupero dei voti',
+          error: 'Impossibile recuperare i voti da ClasseViva. Il servizio potrebbe essere temporaneamente non disponibile.',
           details: errorData 
         }),
         {
-          status: gradesResponse.status,
+          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       );
