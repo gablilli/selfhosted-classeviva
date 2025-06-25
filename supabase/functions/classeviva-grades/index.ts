@@ -23,9 +23,13 @@ serve(async (req) => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'ClasseVivaApp/1.0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
         'Z-Dev-Apikey': '+zorro+',
         'Z-Auth-Token': token,
+        'Referer': 'https://web.spaggiari.eu/',
+        'Origin': 'https://web.spaggiari.eu'
       },
     });
 
@@ -108,9 +112,12 @@ function processGradesData(gradesData: any) {
           id: grade.evtId || Math.random().toString(),
           subject: subjectName,
           value: gradeValue,
+          originalValue: grade.displayValue,
           date: grade.evtDate || new Date().toISOString().split('T')[0],
           description: grade.notesForFamily || grade.componentDesc || 'Voto',
-          type: grade.componentDesc?.toLowerCase().includes('oral') ? 'oral' : 'written'
+          type: grade.componentDesc?.toLowerCase().includes('oral') ? 'oral' : 'written',
+          teacher: grade.teacherName || 'Docente non specificato',
+          period: grade.periodDesc || grade.periodPos || 'Periodo non specificato'
         });
       }
     });

@@ -18,17 +18,22 @@ serve(async (req) => {
 
     console.log('Attempting ClasseViva login for user:', username);
 
-    // Chiamata all'API di ClasseViva per il login
+    // Chiamata all'API di ClasseViva per il login con headers aggiornati
     const loginResponse = await fetch('https://web.spaggiari.eu/rest/v1/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'ClasseVivaApp/1.0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json',
+        'Accept-Language': 'it-IT,it;q=0.9,en;q=0.8',
         'Z-Dev-Apikey': '+zorro+',
+        'Referer': 'https://web.spaggiari.eu/',
+        'Origin': 'https://web.spaggiari.eu'
       },
       body: JSON.stringify({
         ident: username,
         pass: password,
+        customerCode: ""
       }),
     });
 

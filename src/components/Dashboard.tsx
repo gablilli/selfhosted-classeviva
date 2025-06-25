@@ -261,14 +261,19 @@ export const Dashboard = ({ userData, onLogout }: DashboardProps) => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {displayedSubjects.map((subject, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                      <div className="flex-1" onClick={() => window.location.href = `/subject/${encodeURIComponent(subject.name)}`}>
                         <p className="font-medium text-sm">{subject.name}</p>
                         <p className="text-xs text-gray-500">{subject.grades.length} voti</p>
                       </div>
-                      <Badge variant={subject.average >= 8 ? 'default' : subject.average >= 6 ? 'secondary' : 'destructive'}>
-                        {subject.average.toFixed(2)}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={subject.average >= 8 ? 'default' : subject.average >= 6 ? 'secondary' : 'destructive'}>
+                          {subject.average.toFixed(2)}
+                        </Badge>
+                        <Button variant="ghost" size="sm" onClick={() => window.location.href = `/subject/${encodeURIComponent(subject.name)}`}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   {!showAllSubjects && subjects.length > 4 && (
