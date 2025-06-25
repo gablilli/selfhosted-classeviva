@@ -14,9 +14,12 @@ export interface Grade {
   id: string;
   subject: string;
   value: number;
+  originalValue?: string;
   date: string;
   description: string;
   type: 'oral' | 'written' | 'practical';
+  teacher?: string;
+  period?: string;
 }
 
 export interface Subject {
