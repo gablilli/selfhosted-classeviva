@@ -1,1 +1,8 @@
+
 project_id = "ikrfdavbqdklrropsayf"
+
+[functions.classeviva-auth]
+verify_jwt = false
+
+[functions.classeviva-grades]
+verify_jwt = false

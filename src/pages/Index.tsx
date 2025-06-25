@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { LoginForm, LoginCredentials } from '@/components/LoginForm';
 import { Dashboard } from '@/components/Dashboard';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const { toast } = useToast();
 
   const handleLogin = async (credentials: LoginCredentials) => {
@@ -15,22 +17,39 @@ const Index = () => {
     setError(null);
 
     try {
-      // Simula chiamata API di login a ClasseViva
-      console.log('Tentativo di login ClasseViva con:', credentials);
+      console.log('Attempting ClasseViva login...');
       
-      // Per la demo, accetta qualsiasi credenziale con almeno 3 caratteri
-      // Nell'implementazione reale useremo Supabase Edge Functions per chiamare l'API ClasseViva
-      if (credentials.username.length >= 3 && credentials.password.length >= 3) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Simula delay API
-        
+      // Chiamata alla Edge Function per l'autenticazione ClasseViva
+      const { data, error: functionError } = await supabase.functions.invoke('classeviva-auth', {
+        body: {
+          username: credentials.username,
+          password: credentials.password
+        }
+      });
+
+      if (functionError) {
+        throw new Error(functionError.message || 'Errore di connessione');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (data.success) {
+        setUserData({
+          token: data.token,
+          user: data.user
+        });
         setIsAuthenticated(true);
+        
         toast({
           title: "Login effettuato con successo!",
-          description: "Benvenuto nella dashboard ClasseViva Media",
+          description: `Benvenuto ${data.user.name}`,
         });
       } else {
-        throw new Error('Credenziali non valide. Username e password devono avere almeno 3 caratteri.');
+        throw new Error('Risposta inaspettata dal server');
       }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Errore durante il login con ClasseViva';
       setError(errorMessage);
@@ -46,6 +65,7 @@ const Index = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setUserData(null);
     setError(null);
     toast({
       title: "Logout effettuato",
@@ -53,8 +73,13 @@ const Index = () => {
     });
   };
 
-  if (isAuthenticated) {
-    return <Dashboard onLogout={handleLogout} />;
+  if (isAuthenticated && userData) {
+    return (
+      <Dashboard 
+        onLogout={handleLogout} 
+        userData={userData}
+      />
+    );
   }
 
   return (
