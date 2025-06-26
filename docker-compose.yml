@@ -1,0 +1,53 @@
+
+version: '3.8'
+
+services:
+  # VPN Container con server italiano
+  openvpn:
+    image: kylemanna/openvpn
+    container_name: classeviva-vpn
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "1194:1194/udp"
+    volumes:
+      - openvpn-data:/etc/openvpn
+    environment:
+      - OVPN_SERVER_URL=udp://your-server-ip:1194
+      - OVPN_DEFROUTE=1
+      - OVPN_NAT=1
+    restart: unless-stopped
+
+  # Proxy server che passa attraverso la VPN
+  classeviva-proxy:
+    image: nginx:alpine
+    container_name: classeviva-proxy
+    depends_on:
+      - openvpn
+    network_mode: "service:openvpn"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=8080
+    restart: unless-stopped
+
+  # Supabase local development (opzionale)
+  supabase:
+    image: supabase/supabase:latest
+    container_name: classeviva-supabase
+    ports:
+      - "8000:8000"
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - ANON_KEY=your-anon-key
+      - SERVICE_ROLE_KEY=your-service-role-key
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  openvpn-data:
+  postgres-data:

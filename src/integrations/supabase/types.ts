@@ -9,7 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      classeviva_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          is_validated: boolean
+          last_validation: string | null
+          password_hash: string
+          school_code: string
+          student_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_validated?: boolean
+          last_validation?: string | null
+          password_hash: string
+          school_code: string
+          student_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_validated?: boolean
+          last_validation?: string | null
+          password_hash?: string
+          school_code?: string
+          student_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      grades: {
+        Row: {
+          classeviva_account_id: string
+          created_at: string
+          date: string
+          description: string | null
+          grade: number
+          grade_type: string
+          id: string
+          subject: string
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          classeviva_account_id: string
+          created_at?: string
+          date: string
+          description?: string | null
+          grade: number
+          grade_type: string
+          id?: string
+          subject: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          classeviva_account_id?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          grade?: number
+          grade_type?: string
+          id?: string
+          subject?: string
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_classeviva_account_id_fkey"
+            columns: ["classeviva_account_id"]
+            isOneToOne: false
+            referencedRelation: "classeviva_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
